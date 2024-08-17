@@ -109,6 +109,12 @@ git config --global commit.template ~/.gitmessage
 git config --global core.excludesfile ~/.gitignore_global
 echo "Commit template and global gitignore configured"
 
+# Add GPG_TTY to .bashrc
+echo "Adding GPG_TTY to .bashrc..."
+echo "export GPG_TTY=\$(tty)" >> ~/.bashrc
+source ~/.bashrc
+echo "GPG_TTY configured in .bashrc"
+
 # Final configuration summary
 echo "Your Git configuration is complete. Here is a summary of the settings:"
 git config --global --list
