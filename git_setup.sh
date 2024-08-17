@@ -3,7 +3,7 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-# Bash script to install Git, configure it, and set up GPG signing on a new Ubuntu machine
+# Bash script to install Git, configure it, and set up GPG signing on a new Ubuntu machine.
 
 # Update package lists and install Git and GPG
 echo "Updating package lists and installing Git and GPG..."
