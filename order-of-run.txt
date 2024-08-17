@@ -1,0 +1,5 @@
+update_and_upgrade.sh
+git_setup.sh
+setup_java.sh
+setup_languages.sh
+useful_tools.sh
