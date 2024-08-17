@@ -1,4 +1,8 @@
 update_and_upgrade.sh
+
+add .gitmessage to ~
+add .gitignore_global to ~
+
 git_setup.sh
 setup_java.sh
 setup_languages.sh
