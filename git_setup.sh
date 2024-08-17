@@ -105,8 +105,8 @@ echo "Git aliases configured"
 
 # Configure commit message template and global gitignore
 echo "Setting up commit message template and global gitignore..."
-git config --global commit.template ~/.gitmessage
-git config --global core.excludesfile ~/.gitignore_global
+git config --global commit.template ./.gitmessage
+git config --global core.excludesfile ./.gitignore_global
 echo "Commit template and global gitignore configured"
 
 # Final configuration summary
