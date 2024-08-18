@@ -115,6 +115,12 @@ echo "export GPG_TTY=\$(tty)" >> ~/.bashrc
 source ~/.bashrc
 echo "GPG_TTY configured in .bashrc"
 
+# Add GPG_TTY to .bashrc
+echo "Adding GPG_TTY to .zshrc..."
+echo "export GPG_TTY=\$(tty)" >> ~/.zshrc
+source ~/.zshrc
+echo "GPG_TTY configured in .zshrc"
+
 # Final configuration summary
 echo "Your Git configuration is complete. Here is a summary of the settings:"
 git config --global --list
