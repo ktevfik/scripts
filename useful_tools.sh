@@ -7,6 +7,10 @@ echo "Updating package lists and upgrading system packages..."
 sudo apt-get update -y
 sudo apt-get upgrade -y
 
+# Install curl
+echo "Installing curl..."
+sudo apt-get install -y curl
+
 # Install CMake
 echo "Installing CMake..."
 sudo apt-get install -y cmake
