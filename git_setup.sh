@@ -20,7 +20,7 @@ else
 fi
 
 # Set global user information
-GIT_USER_NAME="Mustafa Tevfik Kadan (SSH User)"
+GIT_USER_NAME="Mustafa Tevfik Kadan"
 GIT_USER_EMAIL="mtevfik41@gmail.com"
 
 echo "Configuring Git user name and email..."
@@ -51,29 +51,29 @@ git config --global init.defaultBranch main
 echo "Default branch name set to 'main'"
 
 # Generate or use existing GPG key
-echo "Checking for existing GPG keys..."
-GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep 'sec ' | awk '{print $2}' | cut -d '/' -f 2 | head -n 1)
-
-if [[ -z "$GPG_KEY_ID" ]]; then
-    echo "No existing GPG key found. Generating a new GPG key..."
-    gpg --full-generate-key
-    GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep 'sec ' | awk '{print $2}' | cut -d '/' -f 2 | head -n 1)
-    echo "GPG key generated successfully: $GPG_KEY_ID"
-else
-    echo "Using existing GPG key: $GPG_KEY_ID"
-fi
-
-# Configure Git to use the GPG key for signing commits
-echo "Configuring Git to use GPG key for signing commits..."
-git config --global user.signingkey "$GPG_KEY_ID"
-git config --global commit.gpgsign true
-git config --global gpg.program "gpg"
-echo "Git is configured to use GPG key $GPG_KEY_ID for signing commits."
-
-# Export GPG public key (optional)
-echo "Exporting your GPG public key..."
-gpg --armor --export "$GPG_KEY_ID" > ~/gpg_public_key.asc
-echo "Your GPG public key has been exported to ~/gpg_public_key.asc."
+#echo "Checking for existing GPG keys..."
+#GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep 'sec ' | awk '{print $2}' | cut -d '/' -f 2 | head -n 1)
+#
+#if [[ -z "$GPG_KEY_ID" ]]; then
+#    echo "No existing GPG key found. Generating a new GPG key..."
+#    gpg --full-generate-key
+#    GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep 'sec ' | awk '{print $2}' | cut -d '/' -f 2 | head -n 1)
+#    echo "GPG key generated successfully: $GPG_KEY_ID"
+#else
+#    echo "Using existing GPG key: $GPG_KEY_ID"
+#fi
+#
+## Configure Git to use the GPG key for signing commits
+#echo "Configuring Git to use GPG key for signing commits..."
+#git config --global user.signingkey "$GPG_KEY_ID"
+#git config --global commit.gpgsign true
+#git config --global gpg.program "gpg"
+#echo "Git is configured to use GPG key $GPG_KEY_ID for signing commits."
+#
+## Export GPG public key (optional)
+#echo "Exporting your GPG public key..."
+#gpg --armor --export "$GPG_KEY_ID" > ~/gpg_public_key.asc
+#echo "Your GPG public key has been exported to ~/gpg_public_key.asc."
 
 # Configure SSH keys (Optional)
 echo "Generating SSH key..."
