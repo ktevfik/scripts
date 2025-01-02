@@ -76,15 +76,15 @@ echo "Default branch name set to 'main'"
 #echo "Your GPG public key has been exported to ~/gpg_public_key.asc."
 
 # Configure SSH keys (Optional)
-echo "Generating SSH key..."
-ssh-keygen -t rsa -b 4096 -C "$GIT_USER_EMAIL" -N "" -f ~/.ssh/id_rsa
+echo "Generating SSH key using ed25519..."
+ssh-keygen -t ed25519 -C "$GIT_USER_EMAIL" -N "" -f ~/.ssh/id_ed25519
 
 echo "Starting the SSH agent..."
 eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_rsa
+ssh-add ~/.ssh/id_ed25519
 
 echo "Your SSH public key is:"
-cat ~/.ssh/id_rsa.pub
+cat ~/.ssh/id_ed25519.pub
 echo "Copy the above SSH key and add it to your Git hosting service (GitHub, GitLab, etc.)."
 
 # Caching credentials for HTTPS connections
