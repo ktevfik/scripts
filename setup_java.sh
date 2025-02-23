@@ -1,83 +1,108 @@
 #!/bin/bash
 
-# Bash script to set up a Java development environment on Ubuntu
+# Hata durumunda çıkış yap
+set -e
 
-# Update package lists and upgrade system packages
-echo "Updating package lists and upgrading system packages..."
-sudo apt-get update -y
-sudo apt-get upgrade -y
+# Renkli çıktı için fonksiyonlar
+echo_color() { echo -e "\e[1;32m$1\e[0m"; }
+echo_error() { echo -e "\e[1;31m$1\e[0m"; }
 
-# Install OpenJDK 8, 11, 17, and 21 (Java Development Kit)
-echo "Installing OpenJDK 8, 11, 17, and 21..."
-sudo apt-get install openjdk-8-jdk -y
-sudo apt-get install openjdk-11-jdk -y
-sudo apt-get install openjdk-17-jdk -y
-sudo apt-get install openjdk-21-jdk -y
+# Sistem güncelleme
+echo_color "Sistem güncelleniyor..."
+sudo apt-get update -y || { echo_error "Güncelleme başarısız."; exit 1; }
+sudo apt-get upgrade -y -qq || { echo_error "Yükseltme başarısız."; exit 1; }
 
-# Set up alternatives for Java
-echo "Setting up alternatives for Java..."
-sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-8-openjdk-amd64/bin/java 1
-sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-11-openjdk-amd64/bin/java 2
-sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-17-openjdk-amd64/bin/java 3
-sudo update-alternatives --install /usr/bin/java java /usr/lib/jvm/java-21-openjdk-amd64/bin/java 4
+# OpenJDK sürümlerini yükleme (11, 17, 21)
+echo_color "OpenJDK 11, 17 ve 21 yükleniyor..."
+for version in 11 17 21; do
+    sudo apt-get install -y "openjdk-${version}-jdk" || { echo_error "OpenJDK $version kurulumu başarısız."; exit 1; }
+done
 
-# Set up alternatives for javac (Java Compiler)
-sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-8-openjdk-amd64/bin/javac 1
-sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-11-openjdk-amd64/bin/javac 2
-sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac 3
-sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jvm/java-21-openjdk-amd64/bin/javac 4
+# Java ve javac için alternatifleri ayarlama
+echo_color "Java ve javac alternatifleri yapılandırılıyor..."
+for version in 11 17 21; do
+    sudo update-alternatives --install /usr/bin/java java "/usr/lib/jvm/java-${version}-openjdk-amd64/bin/java" $((version+1))
+    sudo update-alternatives --install /usr/bin/javac javac "/usr/lib/jvm/java-${version}-openjdk-amd64/bin/javac" $((version+1))
+done
 
-# Prompt the user to select the default Java version
-echo "Selecting the default Java version..."
+# Varsayılan Java ve javac seçimi
+echo_color "Varsayılan Java sürümü seçiliyor..."
 sudo update-alternatives --config java
-
-# Prompt the user to select the default javac version
-echo "Selecting the default javac version..."
+echo_color "Varsayılan javac sürümü seçiliyor..."
 sudo update-alternatives --config javac
 
-# Verify Java installation
-echo "Verifying Java installation..."
+# Java doğrulama
+echo_color "Java kurulumu doğrulanıyor..."
+if java -version >/dev/null 2>&1; then
+    echo "Java sürümü: $(java -version 2>&1 | head -n 1)"
+else
+    echo_error "Java kurulumu başarısız. Lütfen kontrol edin."
+    exit 1
+fi
+
+# JAVA_HOME ve PATH ayarlama
+echo_color "JAVA_HOME ve PATH çevre değişkenleri ayarlanıyor..."
+JAVA_HOME=$(dirname "$(dirname "$(readlink -f "$(which java)")")")
+echo "export JAVA_HOME=$JAVA_HOME" | sudo tee -a /etc/profile.d/java.sh
+echo "export PATH=\$JAVA_HOME/bin:\$PATH" | sudo tee -a /etc/profile.d/java.sh
+chmod +x /etc/profile.d/java.sh
+source /etc/profile.d/java.sh
+echo "JAVA_HOME: $JAVA_HOME"
+
+# Maven yükleme ve doğrulama
+echo_color "Maven yükleniyor..."
+sudo apt-get install -y maven || { echo_error "Maven kurulumu başarısız."; exit 1; }
+if mvn -version >/dev/null 2>&1; then
+    echo "Maven sürümü: $(mvn -version | head -n 1)"
+else
+    echo_error "Maven kurulumu başarısız."
+    exit 1
+fi
+
+# Gradle yükleme (en son sürüm için manuel indirme)
+echo_color "Gradle yükleniyor (en son sürüm)..."
+GRADLE_VERSION="8.6"  # Şubat 2025 itibarıyla en güncel sürüm, gerekirse güncelle
+if ! command -v gradle >/dev/null 2>&1 || [[ $(gradle -v | grep "Gradle" | awk '{print $2}') != "$GRADLE_VERSION" ]]; then
+    wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
+    sudo mkdir -p /opt/gradle
+    sudo unzip -q /tmp/gradle.zip -d /opt/gradle
+    sudo ln -sf /opt/gradle/gradle-${GRADLE_VERSION}/bin/gradle /usr/bin/gradle
+    rm /tmp/gradle.zip
+fi
+if gradle -v >/dev/null 2>&1; then
+    echo "Gradle sürümü: $(gradle -v | grep 'Gradle' | awk '{print $2}')"
+else
+    echo_error "Gradle kurulumu başarısız."
+    exit 1
+fi
+
+# Ekstra Java araçları
+echo_color "Ekstra Java araçları yükleniyor..."
+
+# IntelliJ IDEA Community (IDE)
+echo_color "IntelliJ IDEA Community yükleniyor..."
+sudo snap install intellij-idea-community --classic || echo "IntelliJ IDEA zaten kurulu veya snap desteklenmiyor."
+
+# Jenv (Java sürüm yönetimi)
+echo_color "Jenv yükleniyor (Java sürüm yönetimi)..."
+git clone https://github.com/jenv/jenv.git ~/.jenv
+echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(jenv init -)"' >> ~/.bashrc
+echo 'export PATH="$HOME/.jenv/bin:$PATH"' >> ~/.zshrc
+echo 'eval "$(jenv init -)"' >> ~/.zshrc
+source ~/.bashrc 2>/dev/null || source ~/.zshrc 2>/dev/null
+for version in 11 17 21; do
+    jenv add "/usr/lib/jvm/java-${version}-openjdk-amd64" 2>/dev/null
+done
+jenv enable-plugin export >/dev/null 2>&1
+echo "Jenv ile kullanılabilir Java sürümleri: $(jenv versions)"
+
+# Sonuç özeti
+echo_color "Java geliştirme ortamı kurulumu tamamlandı!"
+echo "Java sürümü:"
 java -version
-if [ $? -ne 0 ]; then
-    echo "Java installation failed. Please check the installation process and try again."
-    exit 1
-fi
-
-# Set JAVA_HOME environment variable for the selected Java version
-echo "Setting JAVA_HOME environment variable..."
-echo "export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" | sudo tee -a /etc/profile
-echo "export PATH=\$JAVA_HOME/bin:\$PATH" | sudo tee -a /etc/profile
-source /etc/profile
-
-# Install Maven
-echo "Installing Maven..."
-sudo apt-get install maven -y
-
-# Verify Maven installation
-echo "Verifying Maven installation..."
+echo "JAVA_HOME: $JAVA_HOME"
+echo "Maven sürümü:"
 mvn -version
-if [ $? -ne 0 ]; then
-    echo "Maven installation failed. Please check the installation process and try again."
-    exit 1
-fi
-
-# Install Gradle
-echo "Installing Gradle..."
-sudo apt-get install gradle -y
-
-# Verify Gradle installation
-echo "Verifying Gradle installation..."
-gradle -v
-if [ $? -ne 0 ]; then
-    echo "Gradle installation failed. Please check the installation process and try again."
-    exit 1
-fi
-
-# Final summary
-echo "Java development environment setup is complete."
-echo "Java version:"
-java -version
-echo "Maven version:"
-mvn -version
-echo "Gradle version:"
+echo "Gradle sürümü:"
 gradle -v

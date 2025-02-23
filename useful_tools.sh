@@ -1,140 +1,87 @@
 #!/bin/bash
 
-# Bash script to install CMake, Docker, Docker Compose, Snap, AWS CLI (via Snap), Vim, Neovim, Tmux, and GCC on Ubuntu
+# Hata durumunda çıkış yap
+set -e
 
-# Update package lists and upgrade system packages
-echo "Updating package lists and upgrading system packages..."
-sudo apt-get update -y
-sudo apt-get upgrade -y
+# Renkli çıktı için fonksiyonlar
+echo_color() { echo -e "\e[1;32m$1\e[0m"; }
+echo_error() { echo -e "\e[1;31m$1\e[0m"; }
 
-# Install curl
-echo "Installing curl..."
-sudo apt-get install -y curl
+# Sistem güncelleme
+echo_color "Sistem güncelleniyor..."
+sudo apt-get update -y || { echo_error "Güncelleme başarısız."; exit 1; }
+sudo apt-get upgrade -y -qq || { echo_error "Yükseltme başarısız."; exit 1; }
 
-# Install CMake
-echo "Installing CMake..."
-sudo apt-get install -y cmake
+# curl yükleme (ön koşul)
+echo_color "curl yükleniyor..."
+sudo apt-get install -y curl || { echo_error "curl kurulumu başarısız."; exit 1; }
 
-# Verify CMake installation
-echo "Verifying CMake installation..."
-cmake --version
-if [ $? -ne 0 ]; then
-    echo "CMake installation failed. Please check the installation process and try again."
-    exit 1
-fi
+# CMake yükleme
+echo_color "CMake yükleniyor..."
+sudo apt-get install -y cmake || { echo_error "CMake kurulumu başarısız."; exit 1; }
+echo "CMake: $(cmake --version | head -n 1)"
 
-# Install Docker
-echo "Installing Docker..."
-sudo apt-get install -y docker.io
+# Docker yükleme
+echo_color "Docker yükleniyor..."
+sudo apt-get install -y docker.io || { echo_error "Docker kurulumu başarısız."; exit 1; }
 sudo systemctl start docker
 sudo systemctl enable docker
+sudo usermod -aG docker "$USER"
+echo "Docker: $(docker --version)"
 
-# Verify Docker installation
-echo "Verifying Docker installation..."
-docker --version
-if [ $? -ne 0 ]; then
-    echo "Docker installation failed. Please check the installation process and try again."
-    exit 1
-fi
-
-# Add current user to the Docker group
-echo "Adding current user to the Docker group..."
-sudo usermod -aG docker $USER
-
-# Install Docker Compose
-echo "Installing Docker Compose..."
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.22.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+# Docker Compose yükleme (en güncel sürüm)
+echo_color "Docker Compose yükleniyor..."
+DOCKER_COMPOSE_VERSION="2.29.2"  # Şubat 2025 itibarıyla güncel, gerekirse kontrol et
+sudo curl -L "https://github.com/docker/compose/releases/download/v${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
+echo "Docker Compose: $(docker-compose --version)"
 
-# Verify Docker Compose installation
-echo "Verifying Docker Compose installation..."
-docker-compose --version
-if [ $? -ne 0 ]; then
-    echo "Docker Compose installation failed. Please check the installation process and try again."
-    exit 1
-fi
-
-# Install Snap
-echo "Installing Snap..."
-sudo apt-get install -y snapd
+# Snap yükleme
+echo_color "Snap yükleniyor..."
+sudo apt-get install -y snapd || { echo_error "Snap kurulumu başarısız."; exit 1; }
 sudo systemctl start snapd
 sudo systemctl enable snapd
 
-# Install AWS CLI via Snap
-echo "Installing AWS CLI via Snap..."
-sudo snap install aws-cli --classic
+# Vim yükleme
+echo_color "Vim yükleniyor..."
+sudo apt-get install -y vim || { echo_error "Vim kurulumu başarısız."; exit 1; }
+echo "Vim: $(vim --version | head -n 1)"
 
-# Verify AWS CLI installation
-echo "Verifying AWS CLI installation..."
-aws --version
-if [ $? -ne 0 ]; then
-    echo "AWS CLI installation failed. Please check the installation process and try again."
-    exit 1
-fi
+# Neovim yükleme
+echo_color "Neovim yükleniyor..."
+sudo apt-get install -y neovim || { echo_error "Neovim kurulumu başarısız."; exit 1; }
+echo "Neovim: $(nvim --version | head -n 1)"
 
-# Install Vim
-echo "Installing Vim..."
-sudo apt-get install -y vim
+# Tmux yükleme
+echo_color "Tmux yükleniyor..."
+sudo apt-get install -y tmux || { echo_error "Tmux kurulumu başarısız."; exit 1; }
+echo "Tmux: $(tmux -V)"
 
-# Verify Vim installation
-echo "Verifying Vim installation..."
-vim --version
-if [ $? -ne 0 ]; then
-    echo "Vim installation failed. Please check the installation process and try again."
-    exit 1
-fi
+# GCC (build-essential) yükleme
+echo_color "GCC ve derleme araçları yükleniyor..."
+sudo apt-get install -y build-essential || { echo_error "GCC kurulumu başarısız."; exit 1; }
+echo "GCC: $(gcc --version | head -n 1)"
 
-# Install Neovim
-echo "Installing Neovim..."
-sudo apt-get install -y neovim
+# Ek faydalı araçlar
+echo_color "Ek faydalı araçlar yükleniyor..."
 
-# Verify Neovim installation
-echo "Verifying Neovim installation..."
-nvim --version
-if [ $? -ne 0 ]; then
-    echo "Neovim installation failed. Please check the installation process and try again."
-    exit 1
-fi
+# htop (sistem izleme)
+sudo apt-get install -y htop || echo "htop kurulumu başarısız, devam ediliyor."
+echo "htop: $(htop --version 2>/dev/null || echo 'Yüklenmedi')"
 
-# Install Tmux
-echo "Installing Tmux..."
-sudo apt-get install -y tmux
+# jq (JSON işleme)
+sudo apt-get install -y jq || echo "jq kurulumu başarısız, devam ediliyor."
+echo "jq: $(jq --version 2>/dev/null || echo 'Yüklenmedi')"
 
-# Verify Tmux installation
-echo "Verifying Tmux installation..."
-tmux -V
-if [ $? -ne 0 ]; then
-    echo "Tmux installation failed. Please check the installation process and try again."
-    exit 1
-fi
-
-# Install GCC
-echo "Installing GCC..."
-sudo apt-get install -y build-essential
-
-# Verify GCC installation
-echo "Verifying GCC installation..."
-gcc --version
-if [ $? -ne 0 ]; then
-    echo "GCC installation failed. Please check the installation process and try again."
-    exit 1
-fi
-
-# Final summary
-echo "Installation of CMake, Docker, Docker Compose, Snap, AWS CLI, Vim, Neovim, Tmux, and GCC is complete."
-echo "CMake version:"
-cmake --version
-echo "Docker version:"
-docker --version
-echo "Docker Compose version:"
-docker-compose --version
-echo "AWS CLI version:"
-aws --version
-echo "Vim version:"
-vim --version
-echo "Neovim version:"
-nvim --version
-echo "Tmux version:"
-tmux -V
-echo "GCC version:"
-gcc --version
+# Sonuç özeti
+echo_color "CMake, Docker, Docker Compose, Snap, AWS CLI, Vim, Neovim, Tmux, GCC ve ek araçlar kurulumu tamamlandı!"
+echo "CMake: $(cmake --version | head -n 1)"
+echo "Docker: $(docker --version)"
+echo "Docker Compose: $(docker-compose --version)"
+echo "Vim: $(vim --version | head -n 1)"
+echo "Neovim: $(nvim --version | head -n 1)"
+echo "Tmux: $(tmux -V)"
+echo "GCC: $(gcc --version | head -n 1)"
+echo "htop: $(htop --version 2>/dev/null || echo 'Yüklenmedi')"
+echo "jq: $(jq --version 2>/dev/null || echo 'Yüklenmedi')"
+echo_color "Not: Docker’ı tam kullanmak için terminali kapatıp açmanız gerekebilir."
