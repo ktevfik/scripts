@@ -123,4 +123,8 @@ HISTFILE=~/.zsh_history
 if [ -n "$BASH_VERSION" ]; then
     exit
 fi
-
+alias cat='bat --paging=never --style=plain'
+alias preview='bat --style=numbers,changes,grid'
+alias bat='batcat'
+export BAT_THEME='Dracula'
+export GPG_TTY=$(tty)
